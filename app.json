@@ -1,0 +1,120 @@
+{
+  "expo": {
+    "name": "Smart Calendar 2026",
+    "slug": "calendarapp",
+    "version": "2.0.6",
+    "orientation": "portrait",
+    "icon": "./assets/icons/logo.png",
+    "owner": "docflow789",
+    "scheme": "calendarapp",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hevin.calendar2026",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "buildNumber": "2",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryAddUsageDescription": "Used to save event images to your photo library.",
+        "NSCameraUsageDescription": "Used to take photos and attach them to calendar events.",
+        "NSCalendarsUsageDescription": "Used to sync events with your device calendar.",
+        "NSRemindersUsageDescription": "Used to create reminders for calendar events.",
+        "NSLocationWhenInUseUsageDescription": "Used to show location details for calendar events.",
+        "NSContactsUsageDescription": "Used to invite contacts to calendar events.",
+        "NSSpeechRecognitionUsageDescription": "Allow speech recognition for voice search.",
+        "NSMicrophoneUsageDescription": "Allow access to microphone for voice search.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to attach images to your calendar events."
+      },
+      "appleTeamId": "KKLHX3R5SK"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.hevin.calendar2026",
+      "permissions": ["android.permission.RECORD_AUDIO"]
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/icons/logo.png"
+    },
+    "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/crashlytics",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static",
+            "forceStaticLinking": [
+              "RNFBApp",
+              "RNFBCrashlytics",
+              "RNFBAnalytics",
+              "RNFBRemoteConfig"
+            ]
+          }
+        }
+      ],
+      "expo-router",
+      "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/icons/logo.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "backgroundColor": "#000000"
+          }
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow access to microphone for voice search.",
+          "speechRecognitionPermission": "Allow speech recognition for voice search."
+        }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "hevin",
+          "project": "react-native",
+          "disableAutoUpload": true
+        }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+        }
+      ],
+      "expo-secure-store",
+      "expo-localization",
+      "expo-iap",
+      "@react-native-community/datetimepicker",
+      "@sentry/react-native",
+      "expo-font",
+      "expo-image",
+      "expo-web-browser",
+      "expo-asset",
+      "expo-sharing"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1d34b8c7-b419-4f51-a68c-54673373118a"
+      }
+    }
+  }
+}

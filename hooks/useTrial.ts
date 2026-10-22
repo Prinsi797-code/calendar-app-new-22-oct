@@ -1,0 +1,50 @@
+import { useCallback, useEffect, useState } from 'react';
+import PurchaseManager from '../services/purchaseManager';
+
+export function useTrial() {
+  const [trialActive, setTrialActive] = useState(false);
+  const [remainingDays, setRemainingDays] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [trialExpiredAndNotPremium, setTrialExpiredAndNotPremium] = useState(false);
+
+  const checkTrial = useCallback(async () => {
+    try {
+      const isPremium = await PurchaseManager.isPremium();
+
+      if (isPremium) {
+        setTrialActive(false);
+        setTrialExpiredAndNotPremium(false);
+        setLoading(false);
+        return;
+      }
+
+      setTrialActive(false);
+      setTrialExpiredAndNotPremium(true);
+    } catch {
+      setTrialActive(false);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkTrial();
+  }, []);
+
+  // Premium nahi hai toh PremiumScreen open karo
+  // useEffect(() => {
+  //   if (!loading && trialExpiredAndNotPremium) {
+  //     const timer = setTimeout(async () => {
+  //       const fromNotif = await AsyncStorage.getItem('opened_from_notification');
+  //       if (fromNotif === 'true') {
+  //         console.log('useTrial: Skipping PremiumScreen — opened from notification');
+  //         return;
+  //       }
+  //       router.push('/PremiumScreen');
+  //     }, 500);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [loading, trialExpiredAndNotPremium]);
+
+  return { trialActive: false, remainingDays: 0, loading, refresh: checkTrial };
+}
