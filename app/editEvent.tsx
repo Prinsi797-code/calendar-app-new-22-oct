@@ -51,7 +51,7 @@ export default function EditEventScreen() {
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [selectedCategory, setSelectedCategory] =
     useState<TemplateCategory | null>(null);
-  useScreenTracking("edit_event_screen");
+  useScreenTracking("EditEventActivity");
 
   // Repeat options
   const getRepeatOptions = () => {
@@ -1297,7 +1297,7 @@ export default function EditEventScreen() {
               <GAMBannerAd
                 unitId={bannerConfig.id}
                 sizes={[BannerAdSize.BANNER]}
-                requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+                // requestOptions={{ requestNonPersonalizedAdsOnly: true }}
               />
             </View>
           )}

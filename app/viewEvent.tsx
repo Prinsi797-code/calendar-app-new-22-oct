@@ -4,14 +4,14 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    Alert,
-    Image,
-    ScrollView,
-    Share,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { BannerAdSize, GAMBannerAd } from "react-native-google-mobile-ads";
 import { useTheme } from "../contexts/ThemeContext";
@@ -30,7 +30,7 @@ export default function ViewEventScreen() {
   const searchParams = useLocalSearchParams();
   const { t, i18n } = useTranslation();
   const [isPremium, setIsPremium] = useState(false);
-  useScreenTracking("event_detail_screen");
+  useScreenTracking("EventDetailActivity");
 
   const lightNoEventImg = require("../assets/images/event1.png");
   const darkNoEventImg = require("../assets/images/event2.png");
@@ -526,7 +526,7 @@ ${translatedCountryName ? `${t("country")}:- ${translatedCountryName}` : ""}`;
           <GAMBannerAd
             unitId={bannerConfig.id}
             sizes={[BannerAdSize.ANCHORED_ADAPTIVE_BANNER]}
-            requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+            // requestOptions={{ requestNonPersonalizedAdsOnly: true }}
           />
         </View>
       )}

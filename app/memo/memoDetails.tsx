@@ -4,15 +4,15 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    Alert,
-    Dimensions,
-    Linking,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Dimensions,
+  Linking,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { BannerAdSize, GAMBannerAd } from "react-native-google-mobile-ads";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -42,7 +42,7 @@ export default function MemoDetailsScreen() {
   const [isPremium, setIsPremium] = useState(false);
   const { width } = Dimensions.get("window");
   const [is24Hour, setIs24Hour] = useState(false);
-  useScreenTracking("memo_details_screen");
+  useScreenTracking("MemoDetailsActivity");
   const [bannerConfig, setBannerConfig] = useState<{
     show: boolean;
     id: string;
@@ -414,7 +414,7 @@ export default function MemoDetailsScreen() {
           <GAMBannerAd
             unitId={bannerConfig.id}
             sizes={[BannerAdSize.ANCHORED_ADAPTIVE_BANNER]}
-            requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+            // requestOptions={{ requestNonPersonalizedAdsOnly: true }}
           />
         </View>
       )}

@@ -27,7 +27,7 @@ export default function TimeFormatSettings() {
   const [is24Hour, setIs24Hour] = useState(false);
   const [userLocale, setUserLocale] = useState("en-US");
   const [hasManualOverride, setHasManualOverride] = useState(false);
-  useScreenTracking("time_format_screen");
+  useScreenTracking("TimeFormatAnalitycs");
   const [bannerConfig, setBannerConfig] = useState<{
     show: boolean;
     id: string;
@@ -356,7 +356,7 @@ export default function TimeFormatSettings() {
           <GAMBannerAd
             unitId={bannerConfig.id}
             sizes={[BannerAdSize.ANCHORED_ADAPTIVE_BANNER]}
-            requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+            // requestOptions={{ requestNonPersonalizedAdsOnly: true }}
           />
         </View>
       )}

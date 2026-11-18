@@ -42,7 +42,7 @@ export default function ChallengeDetailsScreen() {
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [is24Hour, setIs24Hour] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
-  useScreenTracking("challenge_details_screen");
+  useScreenTracking("ChallengeDetailsAnalitycs");
   const [bannerConfig, setBannerConfig] = useState<{
     show: boolean;
     id: string;
@@ -419,7 +419,7 @@ export default function ChallengeDetailsScreen() {
           <GAMBannerAd
             unitId={bannerConfig.id}
             sizes={[BannerAdSize.ANCHORED_ADAPTIVE_BANNER]}
-            requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+            // requestOptions={{ requestNonPersonalizedAdsOnly: true }}
           />
         </View>
       )}

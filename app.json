@@ -2,7 +2,7 @@
   "expo": {
     "name": "Smart Calendar 2026",
     "slug": "calendarapp",
-    "version": "2.0.6",
+    "version": "2.0.9",
     "orientation": "portrait",
     "icon": "./assets/icons/logo.png",
     "owner": "docflow789",
@@ -62,6 +62,12 @@
       "expo-router",
       "expo-notifications",
       [
+        "expo-tracking-transparency",
+        {
+          "userTrackingPermission": "We need this permission to show you relevant ads and to improve the app."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/icons/logo.png",
@@ -92,7 +98,8 @@
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-3940256099942544~3347511713",
-          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+          "iosAppId": "ca-app-pub-8004428334722354~9697661388",
+          "userTrackingPermission": "We need this permission to show you relevant ads and to improve the app."
         }
       ],
       "expo-secure-store",
@@ -104,7 +111,8 @@
       "expo-image",
       "expo-web-browser",
       "expo-asset",
-      "expo-sharing"
+      "expo-sharing",
+      "expo-tracking-transparency"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -2,6 +2,7 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DrawerActions } from "@react-navigation/native";
 import * as Sentry from "@sentry/react-native";
+import * as Application from "expo-application";
 import { Image as ExpoImage } from "expo-image";
 import * as Linking from "expo-linking";
 import * as Notifications from "expo-notifications";
@@ -27,6 +28,7 @@ import {
   View,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import ForceUpdateModal from "../components/ForceUpdateModal";
 import NetworkErrorScreen from "../components/NetworkErrorScreen";
 import AppSplashScreen from "../components/SplashScreen";
 import { ThemeProvider, useTheme } from "../contexts/ThemeContext";
@@ -43,6 +45,7 @@ import {
   trackScreen,
 } from "../utils/analytics";
 import { initCrashlytics, logCrashlyticsError } from "../utils/crashlytics";
+import { fetchAppConfig } from "../utils/firebaseConfig";
 import { initializeI18n } from "../utils/i18n";
 import { logError } from "../utils/logError";
 import { MOOD_OPTIONS } from "../utils/moodStorage";
@@ -52,6 +55,7 @@ import {
   scheduleOnboardingNotificationIfNeeded,
   scheduleStreakWarningIfNeeded,
 } from "../utils/streakManager";
+import { requestATT } from "../utils/tracking";
 import { useNetworkStatus } from "../utils/useNetworkStatus";
 
 // Initialize Sentry - Only in Production
@@ -268,6 +272,19 @@ function SplashScreen({
   );
 }
 
+const isVersionOutdated = (current: string, min: string): boolean => {
+  const c = current.split(".").map((n) => parseInt(n, 10) || 0);
+  const m = min.split(".").map((n) => parseInt(n, 10) || 0);
+  const len = Math.max(c.length, m.length);
+  for (let i = 0; i < len; i++) {
+    const a = c[i] ?? 0;
+    const b = m[i] ?? 0;
+    if (a < b) return true;
+    if (a > b) return false;
+  }
+  return false;
+};
+
 function DrawerNavigator() {
   const { colors } = useTheme();
   const router = useRouter();
@@ -285,6 +302,8 @@ function DrawerNavigator() {
   const [splashFinished, setSplashFinished] = useState(false);
   const pathname = usePathname();
   const initStartedRef = useRef(false);
+  const [showForceUpdate, setShowForceUpdate] = useState(false);
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
   useEffect(() => {
     if (pathname) {
@@ -492,32 +511,44 @@ function DrawerNavigator() {
     }
     initStartedRef.current = true;
 
-    const initializeApp = async () => {
-      // try {
-      //   const appConfig: any = await fetchAppConfig();
-      //   const mainScreenConfig = appConfig?.main_screen;
+    // (AdsManager.ensureConfig yahan se hata diya, neeche shift kiya hai)
 
-      //   if (
-      //     mainScreenConfig?.force_update === 1 &&
-      //     mainScreenConfig?.min_version
-      //   ) {
-      //     const currentVersion =
-      //       Application.nativeApplicationVersion ?? "0.0.0";
-      //     if (isVersionOutdated(currentVersion, mainScreenConfig.min_version)) {
-      //       console.log(
-      //         "🚨 Force update required:",
-      //         currentVersion,
-      //         "<",
-      //         mainScreenConfig.min_version,
-      //       );
-      //       setShowForceUpdate(true);
-      //       setIsReady(true);
-      //       return;
-      //     }
-      //   }
-      // } catch (e) {
-      //   console.log("Force update check failed (ignoring):", e);
-      // }
+    const initializeApp = async () => {
+      try {
+        const appConfig: any = await fetchAppConfig();
+        const mainScreenConfig = appConfig?.main_screen;
+
+        if (
+          mainScreenConfig?.force_update === 1 &&
+          mainScreenConfig?.min_version
+        ) {
+          const currentVersion =
+            Application.nativeApplicationVersion ?? "0.0.0";
+          if (isVersionOutdated(currentVersion, mainScreenConfig.min_version)) {
+            console.log(
+              "🚨 Force update required:",
+              currentVersion,
+              "<",
+              mainScreenConfig.min_version,
+            );
+            setShowForceUpdate(true);
+            setIsReady(true);
+            return;
+          }
+        }
+      } catch (e) {
+        console.log("Force update check failed (ignoring):", e);
+      }
+
+      try {
+        await requestATT();
+      } catch (e) {
+        console.log("ATT request failed (ignoring):", e);
+      }
+
+      AdsManager.ensureConfig().catch((e) =>
+        console.log("Early ads warm-up failed:", e),
+      );
 
       try {
         await initCrashlytics();
@@ -529,16 +560,27 @@ function DrawerNavigator() {
         await initAnalytics();
         await trackAppOpen();
 
-        const hasNotifPermission =
-          await NotificationService.requestPermissions();
+        // CHANGED: purchase init + premium check pehle, phir ads, phir notification
+        await PurchaseManager.initialize();
+        const premiumStatus = await PurchaseManager.checkAndRestorePremium();
+
+        // CHANGED: ads notification prompt se pehle start (await nahi, background me)
+        if (!premiumStatus) {
+          AdsManager.initializeAds().catch((e) =>
+            console.log("initializeAds failed:", e),
+          );
+        }
+
+        // CHANGED: notification permission ab ads ke baad
+        const { status: notifStatus } =
+          await Notifications.getPermissionsAsync();
+        const hasNotifPermission = notifStatus === "granted";
+
         await NotificationService.checkAppStoreUpdate();
         if (hasNotifPermission) {
           await NotificationService.scheduleDailyNotifications();
           await NotificationService.scheduleDailyQuoteNotification();
         }
-
-        await PurchaseManager.initialize();
-        const premiumStatus = await PurchaseManager.checkAndRestorePremium();
 
         const lastNotification =
           await NotificationService.getLastNotificationResponse();
@@ -574,7 +616,7 @@ function DrawerNavigator() {
 
         if (!premiumStatus) {
           console.log("Normal launch - loading ads");
-          await AdsManager.initializeAds();
+          await AdsManager.initializeAds(); // flag ki wajah se duplicate load nahi hoga
         } else {
           console.log("Premium user — ads not initialized");
         }
@@ -625,35 +667,53 @@ function DrawerNavigator() {
     initializeApp();
   }, []);
 
+  // useEffect(() => {
+  //   const subscription = AppState.addEventListener(
+  //     "change",
+  //     async (nextState: AppStateStatus) => {
+  //       if (nextState === "active") {
+  //         console.log("App came to foreground");
+
+  //         if (openedFromNotification) {
+  //           console.log("⏭️ Skipping main screen ad (notification open)");
+  //           return;
+  //         }
+
+  //         const premiumStatus = await PurchaseManager.isPremium();
+
+  //         if (premiumStatus) {
+  //           console.log("Premium user - skipping main screen ad");
+  //           return;
+  //         }
+  //         await AdsManager.showMainScreenAd();
+  //       }
+  //     },
+  //   );
+  //   return () => subscription.remove();
+  // }, [openedFromNotification]);
   useEffect(() => {
     const subscription = AppState.addEventListener(
       "change",
-      async (nextState: AppStateStatus) => {
-        if (nextState === "active") {
-          console.log("App came to foreground");
+      async (nextState) => {
+        const prev = appStateRef.current;
+        appStateRef.current = nextState;
 
-          if (openedFromNotification) {
-            console.log("⏭️ Skipping main screen ad (notification open)");
-            return;
-          }
-
+        // sirf jab app background se wapas aaye
+        if (prev === "background" && nextState === "active") {
           const premiumStatus = await PurchaseManager.isPremium();
-
-          if (premiumStatus) {
-            console.log("Premium user - skipping main screen ad");
-            return;
-          }
+          if (premiumStatus) return;
           await AdsManager.showMainScreenAd();
         }
       },
     );
     return () => subscription.remove();
-  }, [openedFromNotification]);
+  }, []);
 
   const handleSplashComplete = async () => {
     console.log("Splash complete");
     setShowSplashAd(false);
-    AdsManager.loadMainScreenInterstitialAd();
+    AdsManager.loadAppOpenAd();
+    // AdsManager.loadMainScreenInterstitialAd();
     try {
       const onboardingDone = await OnboardingService.isOnboardingCompleted();
       if (!onboardingDone) return;
@@ -774,18 +834,6 @@ function DrawerNavigator() {
   //   );
   // }
 
-  // if (!splashFinished) {
-  //   return (
-  //     <AppSplashScreen
-  //       onFinish={() => setSplashFinished(true)}
-  //       isAppReady={isReady}
-  //     />
-  //   );
-  // }
-  // if (showForceUpdate) {
-  //   return <ForceUpdateModal visible={true} />;
-  // }
-
   if (!splashFinished) {
     return (
       <AppSplashScreen
@@ -794,6 +842,18 @@ function DrawerNavigator() {
       />
     );
   }
+  if (showForceUpdate) {
+    return <ForceUpdateModal visible={true} />;
+  }
+
+  // if (!splashFinished) {
+  //   return (
+  //     <AppSplashScreen
+  //       onFinish={() => setSplashFinished(true)}
+  //       isAppReady={isReady}
+  //     />
+  //   );
+  // }
   return (
     <>
       <Drawer

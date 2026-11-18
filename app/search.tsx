@@ -54,7 +54,7 @@ export default function SearchScreen() {
   const [voiceLang, setVoiceLang] = useState("EN");
 
   const inputRef = useRef<TextInput>(null);
-  useScreenTracking("search_screen");
+  useScreenTracking("SearchActivity");
 
   useEffect(() => {
     loadAllData();
@@ -655,7 +655,7 @@ export default function SearchScreen() {
           <GAMBannerAd
             unitId={bannerConfig.id}
             sizes={[BannerAdSize.BANNER]}
-            requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+            // requestOptions={{ requestNonPersonalizedAdsOnly: true }}
           />
         </View>
       )}

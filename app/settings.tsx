@@ -1,7 +1,8 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
+import * as Application from "expo-application";
+import * as FileSystem from "expo-file-system/legacy";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import * as Application from "expo-application";
 import * as Linking from "expo-linking";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -17,7 +18,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import * as FileSystem from "expo-file-system/legacy";
 import { BannerAdSize, GAMBannerAd } from "react-native-google-mobile-ads";
 import { useTheme } from "../contexts/ThemeContext";
 import { useScreenTracking } from "../hooks/useScreenTracking";
@@ -33,7 +33,7 @@ export default function Settings() {
   const searchParams = useLocalSearchParams();
   const { theme, colors } = useTheme();
   const [isPremium, setIsPremium] = useState(false);
-  useScreenTracking("setting_screen");
+  useScreenTracking("SettingActivity");
   const [bannerConfig, setBannerConfig] = useState<{
     show: boolean;
     id: string;
@@ -731,7 +731,7 @@ export default function Settings() {
           <GAMBannerAd
             unitId={bannerConfig.id}
             sizes={[BannerAdSize.ANCHORED_ADAPTIVE_BANNER]}
-            requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+            // requestOptions={{ requestNonPersonalizedAdsOnly: true }}
           />
         </View>
       )}

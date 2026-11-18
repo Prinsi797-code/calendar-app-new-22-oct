@@ -22,7 +22,6 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
-import { useScreenTracking } from "../../hooks/useScreenTracking";
 import NotificationService from "../../services/NotificationService";
 import { logError } from "../../utils/logError";
 
@@ -51,7 +50,7 @@ export default function MemoScreen() {
   const formattedDate = today.toLocaleDateString("en-GB");
   const [is24Hour, setIs24Hour] = useState(false);
   const pulseAnim = useRef(new Animated.Value(0)).current;
-  useScreenTracking("memo_screen");
+  // useScreenTracking("memo_screen");
   const [bannerConfig, setBannerConfig] = useState<{
     show: boolean;
     id: string;
@@ -493,7 +492,7 @@ export default function MemoScreen() {
               </View>
             </View>
           </ScrollView>
-          <View style={{ position: "absolute", right: 30, bottom: 170 }}>
+          <View style={{ position: "absolute", right: 30, bottom: 50 }}>
             <Animated.View
               style={[
                 styles.pulseRing,

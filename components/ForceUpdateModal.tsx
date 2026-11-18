@@ -1,13 +1,13 @@
 // components/ForceUpdateModal.tsx
 import React from "react";
 import {
+  Linking,
   Modal,
-  View,
+  Platform,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  StyleSheet,
-  Linking,
-  Platform,
+  View,
 } from "react-native";
 
 const IOS_STORE_URL = "https://apps.apple.com/app/id6756920857";

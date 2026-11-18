@@ -128,9 +128,9 @@ export default function PremiumScreen() {
   useEffect(() => {
     initAndLoad();
     trackPaymentScreenView();
-    return () => {
-      PurchaseManager.removeListeners();
-    };
+    // return () => {
+    //   PurchaseManager.removeListeners();
+    // };
   }, []);
 
   const getPlanKeyFromProductId = (productId: string): PlanKey | null => {

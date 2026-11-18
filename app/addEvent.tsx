@@ -62,7 +62,7 @@ export default function AddEventScreen() {
   const [isNoteFocused, setIsNoteFocused] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useScreenTracking("add_event_screen");
+  useScreenTracking("AddEventActivity");
 
   // const [isPremiumUser, setIsPremiumUser] = useState(false);
   // const [rewardDaysLeft, setRewardDaysLeft] = useState(0);
@@ -1313,7 +1313,7 @@ export default function AddEventScreen() {
                 <GAMBannerAd
                   unitId={bannerConfig.id}
                   sizes={[BannerAdSize.BANNER]}
-                  requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+                  // requestOptions={{ requestNonPersonalizedAdsOnly: true }}
                 />
               </View>
             )}

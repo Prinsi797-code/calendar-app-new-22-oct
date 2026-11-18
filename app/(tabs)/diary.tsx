@@ -83,7 +83,7 @@ const inRange = (ts: number, f: Filter) => {
 
 export default function CashBookScreen() {
   const { colors } = useTheme();
-  useScreenTracking("cashbook_screen");
+  useScreenTracking("CashBookActivity");
   const { t } = useTranslation();
   const [entries, setEntries] = useState<CashEntry[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
@@ -91,6 +91,7 @@ export default function CashBookScreen() {
   const [modalType, setModalType] = useState<"in" | "out">("in");
   const [editId, setEditId] = useState<string | null>(null);
   const navigation = useNavigation();
+  // const TAB_BAR_SPACE = 150;
 
   useFocusEffect(
     useCallback(() => {
@@ -351,7 +352,7 @@ export default function CashBookScreen() {
           </Text>
         </View>
       </View>
-      <View style={{ height: 100 }} />
+      {/* <View style={{ height: TAB_BAR_SPACE }} /> */}
 
       <CashEntryModal
         visible={modalVisible}
@@ -428,6 +429,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginHorizontal: 10,
     marginTop: 8,
+    marginBottom: 10,
     borderWidth: 1,
   },
   totalCell: {

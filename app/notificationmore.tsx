@@ -36,7 +36,7 @@ export default function NotificationMore() {
   const { from } = useLocalSearchParams();
   const { theme, colors } = useTheme();
   const BANNER_HEIGHT = 60;
-  useScreenTracking("notification_screen");
+  useScreenTracking("NotificationActivity");
   const [bannerConfig, setBannerConfig] = useState<{
     show: boolean;
     id: string;
@@ -689,7 +689,7 @@ export default function NotificationMore() {
           <GAMBannerAd
             unitId={bannerConfig.id}
             sizes={[BannerAdSize.ANCHORED_ADAPTIVE_BANNER]}
-            requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+            // requestOptions={{ requestNonPersonalizedAdsOnly: true }}
           />
         </View>
       )}

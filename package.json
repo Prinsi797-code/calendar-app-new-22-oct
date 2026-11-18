@@ -1,7 +1,7 @@
 {
   "name": "calendarappv2",
   "main": "expo-router/entry",
-  "version": "2.0.6",
+  "version": "2.0.9",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -53,6 +53,7 @@
     "expo-store-review": "~55.0.14",
     "expo-symbols": "~55.0.9",
     "expo-system-ui": "~55.0.18",
+    "expo-tracking-transparency": "~55.0.18",
     "expo-web-browser": "~55.0.16",
     "firebase": "^12.7.0",
     "i18next": "^25.7.1",

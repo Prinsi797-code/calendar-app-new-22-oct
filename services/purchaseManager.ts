@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import analytics from '@react-native-firebase/analytics'; // NEW
 import {
   clearTransactionIOS,
   endConnection,
@@ -40,6 +41,10 @@ class PurchaseManager {
   private purchaseUpdateSub: any = null;
   private purchaseErrorSub: any = null;
 
+  // NEW: price info (fetchProducts se bharta hai) aur purchase flag
+  private priceMap: Record<string, { price: number; currency: string }> = {};
+  private purchaseInitiated = false;
+
   private onSuccessCallback: ((productId: string) => void) | null = null;
   private onErrorCallback:   ((error: string) => void) | null = null;
 
@@ -77,6 +82,7 @@ class PurchaseManager {
         try {
           await finishTransaction({ purchase, isConsumable: false });
           await this.savePremium(purchase);
+          await this.logRevenue(purchase); // NEW
           console.log('✅ Purchase finished & saved:', purchase.productId);
           this.onSuccessCallback?.(purchase.productId);
         } catch (err) {
@@ -87,6 +93,7 @@ class PurchaseManager {
 
       this.purchaseErrorSub = purchaseErrorListener((error: PurchaseError) => {
         console.log('❌ Purchase error:', error.code, error.message);
+        this.purchaseInitiated = false; // NEW
         if (error.code !== 'E_USER_CANCELLED') {
           this.onErrorCallback?.(error.message || 'Purchase failed');
         }
@@ -111,22 +118,35 @@ class PurchaseManager {
     this.onErrorCallback   = onError;
   }
 
-async getSubscriptionProducts(): Promise<Subscription[]> {
+  async getSubscriptionProducts(): Promise<Subscription[]> {
     try {
       const productIds = Object.values(SUBSCRIPTION_SKUS);
       console.log('🔍 Fetching product IDs:', productIds);
       const products = await fetchProducts({ skus: productIds, type: 'subs' });
       console.log('📦 Products fetched:', products.length);
+
+      // NEW: numeric price + currency save karo (revenue logging ke liye)
+      (products as any[]).forEach((p) => {
+        const id = p.productId ?? p.id;
+        const rawPrice = p.price ?? p.priceAmount;
+        const price = typeof rawPrice === 'number' ? rawPrice : parseFloat(rawPrice);
+        const currency = p.currency ?? p.priceCurrencyCode;
+        if (id && !isNaN(price) && currency) {
+          this.priceMap[id] = { price, currency };
+        }
+      });
+
       return products as Subscription[];
     } catch (error) {
       console.log('❌ fetchProducts error:', error);
       return [];
     }
-}
+  }
 
   async purchaseSubscription(sku: string): Promise<void> {
     try {
       console.log('🛒 Requesting subscription:', sku);
+      this.purchaseInitiated = true; // NEW
       await requestPurchase({
         request: {
           apple: { sku },
@@ -135,10 +155,65 @@ async getSubscriptionProducts(): Promise<Subscription[]> {
         type: 'subs',
       });
     } catch (error: any) {
+      this.purchaseInitiated = false; // NEW
       if (error?.code !== 'E_USER_CANCELLED') {
         console.log('requestPurchase error:', error);
         throw error;
       }
+    }
+  }
+
+  // NEW: purchase revenue Firebase/Google Ads ko bhejo
+  private async logRevenue(purchase: Purchase): Promise<void> {
+    try {
+      // sirf user ke khud kiye purchase par log karo (restore/renewal par nahi)
+      if (!this.purchaseInitiated) return;
+      this.purchaseInitiated = false;
+
+      const txId = String(
+        (purchase as any).transactionId ?? (purchase as any).id ?? ''
+      );
+      if (!txId) return;
+
+      // duplicate logging roko
+      const key = `logged_tx_${txId}`;
+      if (await AsyncStorage.getItem(key)) return;
+      await AsyncStorage.setItem(key, '1');
+
+      const info = this.priceMap[purchase.productId];
+      if (!info) {
+        console.log('No price info for', purchase.productId);
+        return;
+      }
+
+      // Free trial detect (best effort, field names version ke hisaab se alag ho sakte hain)
+      const p: any = purchase;
+      const isTrial =
+        p.isTrialPeriod === true ||
+        p.isTrialPeriodIOS === true ||
+        p.offerPaymentModeIOS === 'FREETRIAL' ||
+        p.offerPaymentMode === 'FREETRIAL';
+
+      if (isTrial) {
+        // trial par paisa nahi lagta, to revenue 0 rakho
+        await analytics().logEvent('start_trial', {
+          item_id: purchase.productId,
+          currency: info.currency,
+          value: 0,
+        });
+        console.log('📊 start_trial logged');
+        return;
+      }
+
+      await analytics().logPurchase({
+        value: info.price,
+        currency: info.currency,
+        transaction_id: txId,
+        items: [{ item_id: purchase.productId }],
+      });
+      console.log('📊 purchase logged:', info.price, info.currency);
+    } catch (e) {
+      console.log('logRevenue error:', e);
     }
   }
 

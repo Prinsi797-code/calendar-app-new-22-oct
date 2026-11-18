@@ -20,6 +20,7 @@ import {
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import { COUNTRY_CALENDAR_IDS } from "../../constants/countryCalendars";
+import NotificationService from "../../services/NotificationService";
 
 import { useTheme } from "../../contexts/ThemeContext";
 import { logError } from "../../utils/logError";
@@ -101,27 +102,18 @@ export default function CalendarScreen({ navigation }: any) {
           await Notifications.getPermissionsAsync();
 
         if (existingStatus !== "granted") {
-          console.log(
-            "📱 Requesting notification permission on home screen...",
-          );
           const { status } = await Notifications.requestPermissionsAsync();
 
           if (status === "granted") {
-            console.log("✅ Notification permission granted");
-          } else {
-            console.log("❌ Notification permission denied");
+            await NotificationService.scheduleDailyNotifications();
+            await NotificationService.scheduleDailyQuoteNotification();
           }
-        } else {
-          console.log("✅ Notification permission already granted");
         }
       } catch (error) {
         logError(error, "Error requesting notification permission:");
       }
     };
-    const timer = setTimeout(() => {
-      requestNotificationPermission();
-    }, 3000);
-
+    const timer = setTimeout(requestNotificationPermission, 1500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -1271,7 +1263,7 @@ export default function CalendarScreen({ navigation }: any) {
       </ScrollView>
       {/* Mood sticky button - bottom left */}
       {moodFabVisible && !todayMoodLogged && (
-        <View style={{ position: "absolute", left: 20, bottom: 170 }}>
+        <View style={{ position: "absolute", left: 20, bottom: 50 }}>
           <TouchableOpacity
             style={[styles.moodFab]}
             onPress={() => {
@@ -1292,7 +1284,7 @@ export default function CalendarScreen({ navigation }: any) {
       )}
 
       {/* Add-event FAB - bottom right (unchanged) */}
-      <View style={{ position: "absolute", right: 20, bottom: 170 }}>
+      <View style={{ position: "absolute", right: 20, bottom: 50 }}>
         <Animated.View
           style={[
             styles.pulseRing,
@@ -1331,7 +1323,7 @@ const styles = StyleSheet.create({
   calendarContainer: {},
   eventsScrollView: {
     flex: 1,
-    marginBottom: 100,
+    // marginBottom: 100,
   },
   eventsList: {
     padding: 16,

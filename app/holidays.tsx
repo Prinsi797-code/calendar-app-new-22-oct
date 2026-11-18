@@ -61,7 +61,7 @@ export default function Holidays() {
   const [error, setError] = useState<string | null>(null);
 
   const currentYear = new Date().getFullYear();
-  useScreenTracking("holiday_screen");
+  useScreenTracking("HolidayActivity");
 
   const [bannerConfig, setBannerConfig] = useState<{
     show: boolean;
@@ -793,7 +793,7 @@ export default function Holidays() {
           <GAMBannerAd
             unitId={bannerConfig.id}
             sizes={[BannerAdSize.BANNER]}
-            requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+            // requestOptions={{ requestNonPersonalizedAdsOnly: true }}
           />
         </View>
       )}

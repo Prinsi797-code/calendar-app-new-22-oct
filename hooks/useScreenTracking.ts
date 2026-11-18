@@ -1,5 +1,5 @@
-// hooks/useScreenTracking.ts 
-import { useFocusEffect } from '@react-navigation/native';
+// hooks/useScreenTracking.ts
+import { useFocusEffect } from 'expo-router';
 import { usePostHog } from 'posthog-react-native';
 import { useCallback } from 'react';
 import { trackScreen } from '../utils/analytics';
@@ -11,6 +11,6 @@ export function useScreenTracking(screenName: string) {
     useCallback(() => {
       posthog.screen(screenName);
       trackScreen(screenName);
-    }, [screenName])
+    }, [screenName, posthog])
   );
 }

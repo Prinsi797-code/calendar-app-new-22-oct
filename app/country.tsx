@@ -1,12 +1,12 @@
-import { Feather, Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from '@react-navigation/native';
-import * as Network from 'expo-network';
+import { Feather, Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
+import * as Network from "expo-network";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ExpoSpeechRecognitionModule,
   useSpeechRecognitionEvent,
-} from 'expo-speech-recognition';
+} from "expo-speech-recognition";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -18,18 +18,15 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
-import {
-  BannerAdSize,
-  GAMBannerAd
-} from 'react-native-google-mobile-ads';
-import { CustomToast } from '../components/CustomToast';
-import { useTheme } from '../contexts/ThemeContext';
+import { BannerAdSize, GAMBannerAd } from "react-native-google-mobile-ads";
+import { CustomToast } from "../components/CustomToast";
+import { useTheme } from "../contexts/ThemeContext";
 import { COUNTRIES } from "../data/countries";
-import { useScreenTracking } from '../hooks/useScreenTracking';
-import AdsManager from '../services/adsManager';
-import PurchaseManager from '../services/purchaseManager';
+import { useScreenTracking } from "../hooks/useScreenTracking";
+import AdsManager from "../services/adsManager";
+import PurchaseManager from "../services/purchaseManager";
 
 export default function Country({ navigation }: any) {
   const router = useRouter();
@@ -40,16 +37,16 @@ export default function Country({ navigation }: any) {
   const searchParams = useLocalSearchParams();
   const [filtered, setFiltered] = useState(COUNTRIES);
   const [isSearch, setIsSearch] = useState(false);
-  const SELECTED_COUNTRY_KEY = 'selectedCountry';
+  const SELECTED_COUNTRY_KEY = "selectedCountry";
   const [selected, setSelected] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
   const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
+  const [toastMessage, setToastMessage] = useState("");
   const [isPremium, setIsPremium] = useState(false);
   const [isListening, setIsListening] = useState(false);
 
-  useScreenTracking('country_screen');
+  useScreenTracking("CountryActivity");
 
   // Show toast function
   const showToast = (message: string) => {
@@ -65,20 +62,24 @@ export default function Country({ navigation }: any) {
     checkPremium();
   }, []);
 
-  useSpeechRecognitionEvent('result', (event) => {
-    const transcript = event.results[0]?.transcript || '';
+  useSpeechRecognitionEvent("result", (event) => {
+    const transcript = event.results[0]?.transcript || "";
     setSearch(transcript);
   });
-  useSpeechRecognitionEvent('end', () => setIsListening(false));
-  useSpeechRecognitionEvent('error', () => setIsListening(false));
+  useSpeechRecognitionEvent("end", () => setIsListening(false));
+  useSpeechRecognitionEvent("error", () => setIsListening(false));
 
   const startVoiceSearch = async () => {
-    const { granted } = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-    if (!granted) { alert('Microphone permission required!'); return; }
-    setSearch('');
+    const { granted } =
+      await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+    if (!granted) {
+      alert("Microphone permission required!");
+      return;
+    }
+    setSearch("");
     setIsListening(true);
     ExpoSpeechRecognitionModule.start({
-      lang: i18n.language === 'hi' ? 'hi-IN' : 'en-US',
+      lang: i18n.language === "hi" ? "hi-IN" : "en-US",
       interimResults: true,
       continuous: false,
     });
@@ -97,10 +98,10 @@ export default function Country({ navigation }: any) {
       const isReachable = networkState.isInternetReachable ?? false;
       const networkType = networkState.type;
 
-      console.log('Network Status:', {
+      console.log("Network Status:", {
         isConnected: connected,
         isInternetReachable: isReachable,
-        type: networkType
+        type: networkType,
       });
 
       const actuallyConnected = connected && isReachable;
@@ -108,7 +109,7 @@ export default function Country({ navigation }: any) {
       setIsConnected(actuallyConnected);
       return actuallyConnected;
     } catch (error) {
-      console.log('Network check error:', error);
+      console.log("Network check error:", error);
       setIsConnected(false);
       return false;
     }
@@ -133,19 +134,20 @@ export default function Country({ navigation }: any) {
   };
 
   const translatedCountries = useMemo(() => {
-    return COUNTRIES.map(countrys => ({
+    return COUNTRIES.map((countrys) => ({
       ...countrys,
-      translatedName: getTranslatedName(countrys)
+      translatedName: getTranslatedName(countrys),
     }));
   }, [i18n.language]);
 
   useEffect(() => {
     const searchLower = search.toLowerCase();
     setFiltered(
-      translatedCountries.filter((item) =>
-        item.translatedName.toLowerCase().includes(searchLower) ||
-        item.name.toLowerCase().includes(searchLower)
-      )
+      translatedCountries.filter(
+        (item) =>
+          item.translatedName.toLowerCase().includes(searchLower) ||
+          item.name.toLowerCase().includes(searchLower),
+      ),
     );
   }, [search, translatedCountries]);
 
@@ -154,16 +156,15 @@ export default function Country({ navigation }: any) {
     id: string;
   } | null>(null);
 
-
   useEffect(() => {
     const loadBannerConfig = async () => {
-      const config = await AdsManager.getBannerConfig('setting');
-      console.log('Country screen banner config:', config);
+      const config = await AdsManager.getBannerConfig("setting");
+      console.log("Country screen banner config:", config);
       setBannerConfig(config);
     };
     loadBannerConfig();
   }, []);
-  
+
   useFocusEffect(
     React.useCallback(() => {
       InteractionManager.runAfterInteractions(() => {
@@ -172,19 +173,22 @@ export default function Country({ navigation }: any) {
         setIsSearch(false);
         setSearch("");
       });
-    }, [])
+    }, []),
   );
 
   const loadSavedCountry = async () => {
     try {
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Load timeout')), 2000)
+        setTimeout(() => reject(new Error("Load timeout")), 2000),
       );
       const loadPromise = AsyncStorage.getItem(SELECTED_COUNTRY_KEY);
 
-      const savedCountry = await Promise.race([loadPromise, timeoutPromise]) as string | null;
+      const savedCountry = (await Promise.race([
+        loadPromise,
+        timeoutPromise,
+      ])) as string | null;
 
-      console.log('Loaded country on focus:', savedCountry);
+      console.log("Loaded country on focus:", savedCountry);
       if (savedCountry) {
         try {
           const parsed = JSON.parse(savedCountry);
@@ -193,17 +197,17 @@ export default function Country({ navigation }: any) {
           setSelected([savedCountry]);
         }
       } else {
-        setSelected(['United Kingdom']);
+        setSelected(["United Kingdom"]);
       }
     } catch (error) {
-      console.log('Error loading country:', error);
-      setSelected(['United Kingdom']);
+      console.log("Error loading country:", error);
+      setSelected(["United Kingdom"]);
     }
   };
 
   // Back button - uses setting_screen config
   const handleBackPress = async () => {
-    console.log('Country back button pressed');
+    console.log("Country back button pressed");
 
     const from = searchParams?.from;
     const routeMap = {
@@ -211,28 +215,28 @@ export default function Country({ navigation }: any) {
     };
 
     const targetRoute = routeMap[from] || {
-      pathname: '/',
+      pathname: "/",
       params: {
         refresh: Date.now().toString(),
-        resetToToday: 'true',
+        resetToToday: "true",
       },
     };
 
     // Show setting screen back ad
     const hasNetwork = await checkNetworkStatus();
     if (hasNetwork) {
-      console.log('Attempting to show country back ad...');
-      const adShown = await AdsManager.showSettingScreenInterstitialAd('back');
+      console.log("Attempting to show country back ad...");
+      const adShown = await AdsManager.showSettingScreenInterstitialAd("back");
 
       if (adShown) {
-        console.log('Country back ad shown, navigating after ad closes');
+        console.log("Country back ad shown, navigating after ad closes");
         setTimeout(() => router.push(targetRoute), 500);
       } else {
-        console.log('Country back ad not shown, navigating immediately');
+        console.log("Country back ad not shown, navigating immediately");
         router.push(targetRoute);
       }
     } else {
-      console.log('No network, navigating without ad');
+      console.log("No network, navigating without ad");
       router.push(targetRoute);
     }
   };
@@ -243,7 +247,7 @@ export default function Country({ navigation }: any) {
     if (isSelected) {
       if (selected.length === 1) {
         showToast(
-          t("one_country_required") || "At least one country must be selected"
+          t("one_country_required") || "At least one country must be selected",
         );
         return;
       }
@@ -259,7 +263,7 @@ export default function Country({ navigation }: any) {
 
     if (selected.length === 0) {
       showToast(
-        t("one_country_required") || "At least one country must be selected"
+        t("one_country_required") || "At least one country must be selected",
       );
       return;
     }
@@ -268,7 +272,7 @@ export default function Country({ navigation }: any) {
     if (!hasNetwork) {
       showToast(
         t("no_internet_message") ||
-        "Please check your internet connection and try again."
+          "Please check your internet connection and try again.",
       );
       return;
     }
@@ -280,40 +284,40 @@ export default function Country({ navigation }: any) {
 
       const savePromise = AsyncStorage.setItem(
         SELECTED_COUNTRY_KEY,
-        countriesToSave
+        countriesToSave,
       );
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Save timeout")), 2000)
+        setTimeout(() => reject(new Error("Save timeout")), 2000),
       );
       await Promise.race([savePromise, timeoutPromise]);
       console.log("Countries saved:", selected);
 
-      const targetRoute = searchParams?.from === "year-view"
-        ? "/year-view"
-        : {
-          pathname: "/",
-          params: {
-            refresh: Date.now().toString(),
-            resetToToday: "true",
-          },
-        };
+      const targetRoute =
+        searchParams?.from === "year-view"
+          ? "/year-view"
+          : {
+              pathname: "/",
+              params: {
+                refresh: Date.now().toString(),
+                resetToToday: "true",
+              },
+            };
 
-      console.log('🎬 Attempting to show country save ad...');
-      const adShown = await AdsManager.showSettingScreenInterstitialAd('save');
+      console.log("🎬 Attempting to show country save ad...");
+      const adShown = await AdsManager.showSettingScreenInterstitialAd("save");
 
       if (adShown) {
-        console.log('Country save ad shown, navigating after ad closes');
+        console.log("Country save ad shown, navigating after ad closes");
         setTimeout(() => router.push(targetRoute), 500);
       } else {
-        console.log('Country save ad not shown, navigating immediately');
+        console.log("Country save ad not shown, navigating immediately");
         router.push(targetRoute);
       }
-
     } catch (error) {
       console.log("Error saving countries:", error);
       showToast(
         t("save_error_message") ||
-        "Country selection not possible. Please try again."
+          "Country selection not possible. Please try again.",
       );
     } finally {
       setIsSaving(false);
@@ -321,7 +325,7 @@ export default function Country({ navigation }: any) {
   };
 
   const getTranslatedNameByCode = (countryName: string) => {
-    const countrys = COUNTRIES.find(c => c.name === countryName);
+    const countrys = COUNTRIES.find((c) => c.name === countryName);
     return countrys ? getTranslatedName(countrys) : countryName;
   };
 
@@ -330,9 +334,22 @@ export default function Country({ navigation }: any) {
       <View style={styles.header}>
         {!isSearch && (
           <>
-            <TouchableOpacity onPress={handleBackPress} style={styles.closeBtn} activeOpacity={0.7}>
-              <View style={[styles.closeBtnCircle, { backgroundColor: colors.cardBackground }]}>
-                <Ionicons name="chevron-back" size={28} color={colors.textSecondary} />
+            <TouchableOpacity
+              onPress={handleBackPress}
+              style={styles.closeBtn}
+              activeOpacity={0.7}
+            >
+              <View
+                style={[
+                  styles.closeBtnCircle,
+                  { backgroundColor: colors.cardBackground },
+                ]}
+              >
+                <Ionicons
+                  name="chevron-back"
+                  size={28}
+                  color={colors.textSecondary}
+                />
               </View>
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
@@ -341,12 +358,33 @@ export default function Country({ navigation }: any) {
             {/* </View> */}
 
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <TouchableOpacity onPress={() => setIsSearch(true)} style={[styles.closeBtnCircle, { backgroundColor: colors.cardBackground, marginRight: 10 }]}>
-                <Feather name="search" size={24} style={[{ color: colors.textPrimary }]} />
+              <TouchableOpacity
+                onPress={() => setIsSearch(true)}
+                style={[
+                  styles.closeBtnCircle,
+                  { backgroundColor: colors.cardBackground, marginRight: 10 },
+                ]}
+              >
+                <Feather
+                  name="search"
+                  size={24}
+                  style={[{ color: colors.textPrimary }]}
+                />
               </TouchableOpacity>
               <TouchableOpacity onPress={saveCountries} disabled={isSaving}>
-                <View style={[styles.closeBtnCircle, { backgroundColor: colors.cardBackground }]}>
-                  <Feather name="check" size={26} style={[{ color: colors.primary, opacity: isSaving ? 0.5 : 1 }]} />
+                <View
+                  style={[
+                    styles.closeBtnCircle,
+                    { backgroundColor: colors.cardBackground },
+                  ]}
+                >
+                  <Feather
+                    name="check"
+                    size={26}
+                    style={[
+                      { color: colors.primary, opacity: isSaving ? 0.5 : 1 },
+                    ]}
+                  />
                 </View>
               </TouchableOpacity>
             </View>
@@ -354,27 +392,48 @@ export default function Country({ navigation }: any) {
         )}
 
         {isSearch && (
-          <View style={[styles.searchHeader, { backgroundColor: colors.background }]}>
-            <TouchableOpacity onPress={() => { setIsSearch(false); setSearch(''); stopVoiceSearch(); }}>
-              <Feather name="x" size={28} style={{ color: colors.textPrimary }} />
+          <View
+            style={[
+              styles.searchHeader,
+              { backgroundColor: colors.background },
+            ]}
+          >
+            <TouchableOpacity
+              onPress={() => {
+                setIsSearch(false);
+                setSearch("");
+                stopVoiceSearch();
+              }}
+            >
+              <Feather
+                name="x"
+                size={28}
+                style={{ color: colors.textPrimary }}
+              />
             </TouchableOpacity>
 
             {/* Input + Voice Pill wrapper */}
-            <View style={{ flex: 1, marginHorizontal: 8, position: 'relative', justifyContent: 'center' }}>
-
+            <View
+              style={{
+                flex: 1,
+                marginHorizontal: 8,
+                position: "relative",
+                justifyContent: "center",
+              }}
+            >
               {/* 🔴 iOS style pill — sirf listening me dikhega */}
               {isListening && (
                 <View style={styles.voicePill}>
                   <Ionicons name="mic" size={13} color="#fff" />
                   <View style={styles.voiceDivider} />
                   <Text style={styles.voiceLangText}>
-                    {i18n.language === 'hi' ? 'HI' : 'EN'}
+                    {i18n.language === "hi" ? "HI" : "EN"}
                   </Text>
                 </View>
               )}
 
               <TextInput
-                placeholder={t('search')}
+                placeholder={t("search")}
                 placeholderTextColor="#888"
                 value={search}
                 onChangeText={setSearch}
@@ -382,8 +441,8 @@ export default function Country({ navigation }: any) {
                   styles.searchInput,
                   {
                     color: colors.textPrimary,
-                    paddingLeft: isListening ? 82 : 10,  // pill ke liye space
-                    paddingRight: 36,                      // mic icon ke liye space
+                    paddingLeft: isListening ? 82 : 10, // pill ke liye space
+                    paddingRight: 36, // mic icon ke liye space
                   },
                 ]}
                 autoFocus
@@ -391,37 +450,64 @@ export default function Country({ navigation }: any) {
 
               {/* Right side: X ya Mic */}
               <TouchableOpacity
-                onPress={search.length > 0 ? () => setSearch('') : (isListening ? stopVoiceSearch : startVoiceSearch)}
+                onPress={
+                  search.length > 0
+                    ? () => setSearch("")
+                    : isListening
+                      ? stopVoiceSearch
+                      : startVoiceSearch
+                }
                 style={styles.inputMicBtn}
               >
                 {search.length > 0 ? (
                   <Feather name="x" size={18} color="#888" />
                 ) : (
                   <Ionicons
-                    name={isListening ? 'mic' : 'mic-outline'}
+                    name={isListening ? "mic" : "mic-outline"}
                     size={20}
-                    color={isListening ? '#FF3B30' : '#888'}
+                    color={isListening ? "#FF3B30" : "#888"}
                   />
                 )}
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity onPress={saveCountries} disabled={isSaving}>
-              <Feather name="check" size={26} style={{ color: colors.textPrimary, opacity: isSaving ? 0.5 : 1 }} />
+              <Feather
+                name="check"
+                size={26}
+                style={{
+                  color: colors.textPrimary,
+                  opacity: isSaving ? 0.5 : 1,
+                }}
+              />
             </TouchableOpacity>
           </View>
         )}
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagWrapper}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.tagWrapper}
+      >
         {selected.map((name) => (
-          <View key={name} style={[styles.tag, { backgroundColor: colors.cardBackground }]}>
+          <View
+            key={name}
+            style={[styles.tag, { backgroundColor: colors.cardBackground }]}
+          >
             <Text style={[styles.tagText, { color: colors.textPrimary }]}>
               {getTranslatedNameByCode(name)}
             </Text>
             {selected.length > 1 && (
-              <TouchableOpacity onPress={() => toggleSelect(name)} style={{ marginLeft: 6 }}>
-                <Feather name="x" size={16} style={[{ color: colors.textSecondary }]} />
+              <TouchableOpacity
+                onPress={() => toggleSelect(name)}
+                style={{ marginLeft: 6 }}
+              >
+                <Feather
+                  name="x"
+                  size={16}
+                  style={[{ color: colors.textSecondary }]}
+                />
               </TouchableOpacity>
             )}
           </View>
@@ -438,9 +524,16 @@ export default function Country({ navigation }: any) {
               style={[styles.countryItem]}
               onPress={() => toggleSelect(item.name)}
             >
-              <View style={[styles.maindata, { backgroundColor: colors.cardBackground }]}>
+              <View
+                style={[
+                  styles.maindata,
+                  { backgroundColor: colors.cardBackground },
+                ]}
+              >
                 <Image source={item.flag} style={[styles.flag]} />
-                <Text style={[styles.countryText, { color: colors.textPrimary }]}>
+                <Text
+                  style={[styles.countryText, { color: colors.textPrimary }]}
+                >
                   {item.translatedName}
                 </Text>
                 {isSelected ? (
@@ -471,7 +564,7 @@ export default function Country({ navigation }: any) {
           <GAMBannerAd
             unitId={bannerConfig.id}
             sizes={[BannerAdSize.ANCHORED_ADAPTIVE_BANNER]}
-            requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+            // requestOptions={{ requestNonPersonalizedAdsOnly: true }}
           />
         </View>
       )}
@@ -490,12 +583,12 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff", paddingHorizontal: 15 },
   stickyAdContainer: {
     bottom: 20,
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
   },
   doneText: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   topBar: {
     marginTop: 70,
@@ -509,9 +602,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   maindata: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 10,
     // marginHorizontal: 16,
     // marginBottom: 12,
@@ -522,12 +615,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   voicePill: {
-    position: 'absolute',
+    position: "absolute",
     left: 6,
     zIndex: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FF3B30',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FF3B30",
     borderRadius: 20,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -536,20 +629,20 @@ const styles = StyleSheet.create({
   voiceDivider: {
     width: 1,
     height: 13,
-    backgroundColor: 'rgba(255,255,255,0.5)',
+    backgroundColor: "rgba(255,255,255,0.5)",
   },
   voiceLangText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   inputMicBtn: {
-    position: 'absolute',
+    position: "absolute",
     right: 6,
     width: 30,
     height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   search: {
     height: 40,
@@ -559,15 +652,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginVertical: 10,
   },
-  closeBtn: { minWidth: 50, alignItems: 'flex-start', justifyContent: 'center' },
-  closeBtnCircle: {
-    width: 40, height: 40, borderRadius: 50,
-    alignItems: 'center', justifyContent: 'center',
+  closeBtn: {
+    minWidth: 50,
+    alignItems: "flex-start",
+    justifyContent: "center",
   },
-  closeBtnX: { fontSize: 25, fontWeight: '700' },
+  closeBtnCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 50,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  closeBtnX: { fontSize: 25, fontWeight: "700" },
   leftContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   header: {
@@ -583,12 +683,12 @@ const styles = StyleSheet.create({
   },
   backIcon: {
     fontSize: 26,
-    fontWeight: "600"
+    fontWeight: "600",
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    alignItems: 'center'
+    fontWeight: "600",
+    alignItems: "center",
   },
   searchHeader: {
     flexDirection: "row",

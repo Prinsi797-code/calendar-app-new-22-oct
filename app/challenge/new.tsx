@@ -10,21 +10,21 @@ import { Animated } from "react-native";
 import { logError } from "../../utils/logError";
 
 import {
-    ActivityIndicator,
-    Alert,
-    AppState,
-    InteractionManager,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    ToastAndroid,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  AppState,
+  InteractionManager,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  ToastAndroid,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { BannerAdSize, GAMBannerAd } from "react-native-google-mobile-ads";
 import { CustomToast } from "../../components/CustomToast";
@@ -35,8 +35,8 @@ import NotificationService from "../../services/NotificationService";
 import PurchaseManager from "../../services/purchaseManager";
 // import { isStreakRewardActive } from '../../utils/streakManager';
 import {
-    isChallengeRewardActive,
-    isStreakRewardActive,
+  isChallengeRewardActive,
+  isStreakRewardActive,
 } from "../../utils/streakManager";
 
 const iconOptions = [
@@ -66,7 +66,7 @@ export default function NewChallengeScreen() {
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [challengeRewardDaysLeft, setChallengeRewardDaysLeft] = useState(0);
   const isEditMode = !!params.id;
-  useScreenTracking("new_challenge_screen");
+  useScreenTracking("AddChallengeActivity");
 
   const getInitialReminderTime = () => {
     const now = new Date();
@@ -922,7 +922,7 @@ export default function NewChallengeScreen() {
               <GAMBannerAd
                 unitId={bannerConfig.id}
                 sizes={[BannerAdSize.BANNER]}
-                requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+                // requestOptions={{ requestNonPersonalizedAdsOnly: true }}
               />
             </View>
           )}

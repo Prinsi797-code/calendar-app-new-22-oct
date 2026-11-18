@@ -21,7 +21,6 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
-import { useScreenTracking } from "../../hooks/useScreenTracking";
 import NotificationService from "../../services/NotificationService";
 import { logError } from "../../utils/logError";
 
@@ -48,7 +47,7 @@ export default function ChallengeScreen() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const { t } = useTranslation();
   const pulseAnim = useRef(new Animated.Value(0)).current;
-  useScreenTracking("challenge_screen");
+  // useScreenTracking("challenge_screen");
   const [bannerConfig, setBannerConfig] = useState<{
     show: boolean;
     id: string;
@@ -397,7 +396,7 @@ export default function ChallengeScreen() {
       </ScrollView>
 
       {!selectionMode && (
-        <View style={{ position: "absolute", right: 30, bottom: 170 }}>
+        <View style={{ position: "absolute", right: 30, bottom: 50 }}>
           <Animated.View
             style={[
               styles.pulseRing,

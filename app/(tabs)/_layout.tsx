@@ -103,41 +103,16 @@ function GlassTabButton({
 }
 
 function GlassTabBar({ state, navigation, descriptors }: any) {
-  const { resolvedTheme, colors } = useTheme();
-  const isDark = resolvedTheme === "dark" || resolvedTheme === "custom";
-
-  const baseColor = isDark
-    ? "rgba(18, 18, 28, 0.88)"
-    : "rgba(234, 234, 234, 0.89)";
-
-  const sheen = isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.55)";
-
-  const borderClr = isDark ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.06)";
-
-  const shineClr = isDark ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.85)";
-
-  const shadowClr = isDark ? "#000" : "#000";
+  const { colors } = useTheme();
 
   return (
-    <View
-      style={[
-        styles.barOuter,
-        { bottom: BAR_BOTTOM, backgroundColor: "transparent" },
-      ]}
-    >
+    <View style={[styles.barOuter, { backgroundColor: colors.background }]}>
       <View
         style={[
           styles.glassContainer,
           {
             backgroundColor: colors.cardBackground,
-            borderRadius: 0,
             borderColor: colors.border,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.18,
-            shadowRadius: 16,
-            elevation: 20,
-            margin: 5,
           },
         ]}
       >
@@ -166,16 +141,15 @@ function GlassTabBar({ state, navigation, descriptors }: any) {
     </View>
   );
 }
-
 export default function TabLayout() {
   const { colors } = useTheme();
   const { t, i18n, ready } = useTranslation();
-  const [isAdDismissed, setIsAdDismissed] = useState(false);
-  const [isAdLoaded, setIsAdLoaded] = useState(false);
   const [bannerConfig, setBannerConfig] = useState<{
     show: boolean;
     id: string;
+    preloadId?: string;
   } | null>(null);
+  const [usePreload, setUsePreload] = useState(true);
   const [isAdsReady, setIsAdsReady] = useState(false);
   const [isI18nReady, setIsI18nReady] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(
@@ -253,8 +227,13 @@ export default function TabLayout() {
 
       if (!AdsManager.isConfigReady()) await AdsManager.initializeAds();
 
-      const config = await AdsManager.getBannerConfig("main");
+      let config = await AdsManager.getBannerConfig("main");
+      for (let i = 0; i < 3 && !config; i++) {
+        await new Promise((r) => setTimeout(r, 2500));
+        config = await AdsManager.getBannerConfig("main");
+      }
       setBannerConfig(config);
+      setUsePreload(!!config?.preloadId);
       setIsAdsReady(true);
     };
     initAds();
@@ -303,7 +282,13 @@ export default function TabLayout() {
   }
 
   // const showBanner = !isPremium && bannerConfig?.show;
-  const showBanner = !isPremium && bannerConfig?.show && !isAdDismissed;
+  // const showBanner = !isPremium && bannerConfig?.show;
+  const activeBannerId =
+    usePreload && bannerConfig?.preloadId
+      ? bannerConfig.preloadId
+      : bannerConfig?.id;
+
+  const showBanner = !isPremium && bannerConfig?.show && !!activeBannerId;
 
   // useEffect(() => {
   //   if (showBanner) {
@@ -313,44 +298,38 @@ export default function TabLayout() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Tabs
-        screenOptions={{ headerShown: false, tabBarStyle: { display: "none" } }}
-        tabBar={(props) => (
-          <GlassTabBar
-            {...props}
-            bottomOffset={showBanner ? BANNER_HEIGHT : 0}
-          />
-        )}
-      >
-        <Tabs.Screen name="index" options={{ title: t("calendar") }} />
-        <Tabs.Screen name="challenge" options={{ title: t("Challenge") }} />
-        <Tabs.Screen name="memo" options={{ title: t("Memo") }} />
-        <Tabs.Screen name="diary" options={{ title: t("CashBook") }} />
-      </Tabs>
+      <View style={{ flex: 1 }}>
+        <Tabs
+          screenOptions={{
+            headerShown: false,
+            tabBarStyle: { display: "none" },
+            sceneStyle: { backgroundColor: "red" },
+          }}
+          tabBar={(props) => <GlassTabBar {...props} />}
+        >
+          <Tabs.Screen name="index" options={{ title: t("calendar") }} />
+          <Tabs.Screen name="challenge" options={{ title: t("Challenge") }} />
+          <Tabs.Screen name="memo" options={{ title: t("Memo") }} />
+          <Tabs.Screen name="diary" options={{ title: t("CashBook") }} />
+        </Tabs>
+      </View>
 
       {showBanner && (
-        <View style={styles.stickyAdContainer}>
-          <View style={styles.adWrapper}>
-            {isAdLoaded && (
-              <Pressable
-                style={styles.adCloseButton}
-                onPress={() => setIsAdDismissed(true)}
-                hitSlop={10}
-              >
-                <Feather name="x" size={14} color="#fff" />
-              </Pressable>
-            )}
-            <GAMBannerAd
-              unitId={bannerConfig!.id}
-              sizes={[BannerAdSize.ANCHORED_ADAPTIVE_BANNER]}
-              requestOptions={{ requestNonPersonalizedAdsOnly: true }}
-              onAdLoaded={() => setIsAdLoaded(true)}
-              onAdFailedToLoad={(error) => {
-                console.log("Banner ad failed to load:", error);
-                setIsAdLoaded(false);
-              }}
-            />
-          </View>
+        <View style={styles.bottomAdContainer}>
+          <GAMBannerAd
+            key={activeBannerId}
+            unitId={activeBannerId!}
+            sizes={[BannerAdSize.ANCHORED_ADAPTIVE_BANNER]}
+            onAdLoaded={() =>
+              console.log("Main banner loaded:", activeBannerId)
+            }
+            onAdFailedToLoad={(error) => {
+              console.log("Main banner failed:", activeBannerId, error);
+              if (usePreload && bannerConfig?.preloadId) {
+                setUsePreload(false);
+              }
+            }}
+          />
         </View>
       )}
     </View>
@@ -359,23 +338,39 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   barOuter: {
-    position: "absolute",
-    left: 0,
-    right: 0,
+    width: "100%",
+    paddingHorizontal: 16,
+    paddingTop: 0,
+    paddingBottom: 12, // <- tab bar aur ad ke beech gap
+    // backgroundColor: "transparent",
   },
   glassContainer: {
-    height: 89,
-    borderRadius: 90,
+    height: 70,
+    borderRadius: 35, // <- pura round (height / 2)
+    borderWidth: StyleSheet.hairlineWidth,
     overflow: "hidden",
-    shadowOffset: { width: 10, height: 12 },
-    shadowOpacity: 0.35,
-    marginLeft: 0,
-    marginRight: 0,
-    shadowRadius: 25,
-    paddingBottom: 20,
-    marginBottom: 0,
-    marginTop: 20,
-    elevation: 18,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  tabRow: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+  },
+  tabButton: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 1,
+    paddingVertical: 8,
+  },
+  bottomAdContainer: {
+    width: "100%",
+    alignItems: "center",
   },
   base: { ...StyleSheet.absoluteFillObject },
   sheen: { ...StyleSheet.absoluteFillObject },
@@ -385,19 +380,6 @@ const styles = StyleSheet.create({
     left: 28,
     right: 28,
     height: 1,
-  },
-  tabRow: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-  },
-  tabButton: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 1,
-    paddingVertical: 12,
   },
   iconWrapper: {
     width: 30,
@@ -429,17 +411,5 @@ const styles = StyleSheet.create({
   adWrapper: {
     position: "relative",
     alignItems: "center",
-  },
-  adCloseButton: {
-    position: "absolute",
-    top: -8,
-    right: 8,
-    zIndex: 10,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    alignItems: "center",
-    justifyContent: "center",
   },
 });

@@ -53,7 +53,7 @@ export default function NewMemoScreen() {
   const [pickerMode, setPickerMode] = useState<"date" | "time">("date");
   const [memos, setMemos] = useState([]);
   const [is24Hour, setIs24Hour] = useState(false);
-  useScreenTracking("new_memo_screen");
+  useScreenTracking("AddMemoActivity");
   const [isSaving, setIsSaving] = useState(false);
   const [bannerConfig, setBannerConfig] = useState<{
     show: boolean;
@@ -750,7 +750,7 @@ export default function NewMemoScreen() {
             <GAMBannerAd
               unitId={bannerConfig.id}
               sizes={[BannerAdSize.BANNER]}
-              requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+              // requestOptions={{ requestNonPersonalizedAdsOnly: true }}
             />
           </View>
         )}

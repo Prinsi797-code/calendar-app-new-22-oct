@@ -105,7 +105,9 @@ export default function Language() {
   const [bannerConfig, setBannerConfig] = useState<{
     show: boolean;
     id: string;
+    preloadId?: string;
   } | null>(null);
+  const [usePreload, setUsePreload] = useState(true);
 
   useEffect(() => {
     const checkPremium = async () => {
@@ -114,6 +116,11 @@ export default function Language() {
     };
     checkPremium();
   }, []);
+
+  const activeBannerId =
+    usePreload && bannerConfig?.preloadId
+      ? bannerConfig.preloadId
+      : bannerConfig?.id;
 
   // useEffect(() => {
   //   const loadBannerConfig = async () => {
@@ -127,14 +134,29 @@ export default function Language() {
   // }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadBannerConfig = async () => {
       const completed = await OnboardingService.isOnboardingCompleted();
       const configType = !completed ? "language" : "setting";
-      const config = await AdsManager.getBannerConfig(configType);
-      console.log(`Language screen banner config (${configType}):`, config);
+
+      // pehli install par config late aata hai, isliye 4 baar tak retry
+      let config = await AdsManager.getBannerConfig(configType);
+      for (let i = 0; i < 4 && !config && !cancelled; i++) {
+        await new Promise((r) => setTimeout(r, 2000));
+        config = await AdsManager.getBannerConfig(configType);
+      }
+
+      if (cancelled) return;
       setBannerConfig(config);
+      setUsePreload(!!config?.preloadId);
+      console.log(`Language screen banner config (${configType}):`, config);
     };
+
     loadBannerConfig();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const sortedLanguages = useMemo(() => {
@@ -371,7 +393,6 @@ export default function Language() {
           </View>
         </TouchableOpacity>
       </View>
-
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {sortedLanguages.map((language) => (
           <TouchableOpacity
@@ -405,12 +426,25 @@ export default function Language() {
         ))}
       </ScrollView>
 
-      {bannerConfig?.show && !isPremium && (
+      {bannerConfig?.show && !isPremium && !!activeBannerId && (
         <View style={styles.stickyAdContainer}>
           <GAMBannerAd
-            unitId={bannerConfig.id}
+            key={activeBannerId}
+            unitId={activeBannerId}
             sizes={[BannerAdSize.MEDIUM_RECTANGLE]}
-            requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+            // requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+            onAdLoaded={() =>
+              console.log("Language banner loaded:", activeBannerId)
+            }
+            onAdFailedToLoad={(error) => {
+              console.log("Language banner failed:", activeBannerId, error);
+              if (usePreload && bannerConfig.preloadId) {
+                console.log(
+                  "Preload failed, falling back to language_baner_id",
+                );
+                setUsePreload(false);
+              }
+            }}
           />
         </View>
       )}

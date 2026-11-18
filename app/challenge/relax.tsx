@@ -4,12 +4,12 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { BannerAdSize, GAMBannerAd } from "react-native-google-mobile-ads";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -216,7 +216,7 @@ export default function RelaxationScreen() {
           <GAMBannerAd
             unitId={bannerConfig.id}
             sizes={[BannerAdSize.BANNER]}
-            requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+            // requestOptions={{ requestNonPersonalizedAdsOnly: true }}
           />
         </View>
       )}

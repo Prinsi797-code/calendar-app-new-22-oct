@@ -75,7 +75,7 @@ export default function CashEntryModal({
   onSaved,
 }: Props) {
   const { colors } = useTheme();
-  useScreenTracking("cash_entry_modal");
+  useScreenTracking("CashEntryActivity");
   const { t } = useTranslation();
   const [type, setType] = useState<"in" | "out">(initialType);
   const [date, setDate] = useState(new Date());
